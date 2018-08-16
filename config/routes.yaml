@@ -1,0 +1,4 @@
+comment_api:
+    type: rest
+    prefix: /api
+    resource: routes/comment_routes.yaml

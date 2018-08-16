@@ -1,0 +1,15 @@
+fos_rest:
+    routing_loader:
+        include_format: false
+    view:
+        view_response_listener:
+            enabled: true
+            force: true
+        formats:
+            json: true
+    serializer:
+        serialize_null: true
+    format_listener:
+        enabled: true
+        rules:
+            - { priorities: ['json'], fallback_format: 'json' }

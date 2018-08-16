@@ -1,0 +1,7 @@
+comment:
+    type: rest
+    resource: App\Controller\CommentController
+
+comment_child:
+    type: annotation
+    resource: App\Controller\CommentChildController
