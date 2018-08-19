@@ -23,16 +23,17 @@ class CommentChildController extends BaseController
      */
     public function getAction(int $parentId)
     {
-
-        if (!$this->getParentComment($parentId)) {
-            return new JsonResponse(['success' => false], JsonResponse::HTTP_NOT_FOUND);
+        if (($parentId !== 0) && !$this->getCommentById($parentId)) {
+            return $this->sendResponse([
+                'message' => 'No comment found for id ' . $parentId,
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $comments = $this->getDoctrine()
             ->getRepository(Comment::class)
             ->findBy(['parentId' => $parentId], ['id' => 'ASC']);
 
-        return $this->sendResponse(['success' => true, 'data' => $comments]);
+        return $this->sendResponse($comments);
     }
 
     /**
@@ -40,17 +41,21 @@ class CommentChildController extends BaseController
      * @param Request $request
      * @param ValidatorInterface $validator
      * @param int $parentId
-     * @return JsonResponse
+     * @return object
      */
     public function postAction(Request $request, ValidatorInterface $validator, int $parentId)
     {
-        if (!$this->getParentComment($parentId)) {
-            return new JsonResponse(['success' => false], JsonResponse::HTTP_NOT_FOUND);
+        if (($parentId !== 0) && !$this->getCommentById($parentId)) {
+            return $this->sendResponse([
+                'message' => 'No comment found for id ' . $id,
+            ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $data = json_decode($request->getContent(), true);
         if ($data === null) {
-            return new JsonResponse(['success' => false], JsonResponse::HTTP_BAD_REQUEST);
+            return $this->sendResponse([
+                'message' => 'Malformed request body',
+            ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $comment = new Comment();
@@ -64,8 +69,8 @@ class CommentChildController extends BaseController
             foreach ($errors as $e) {
                 $errorMessages[$e->getPropertyPath()] = $e->getMessage();
             }
-            return new JsonResponse([
-                'success' => false,
+            return $this->sendResponse([
+                'message' => 'There are validation errors',
                 'data' => $errorMessages,
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -73,10 +78,7 @@ class CommentChildController extends BaseController
         $this->entityManager->persist($comment);
         $this->entityManager->flush();
 
-        return $this->sendResponse([
-            'success' => true,
-            'data' => $comment,
-        ], JsonResponse::HTTP_CREATED);
+        return $this->sendResponse($comment,JsonResponse::HTTP_CREATED);
     }
 
     /**
@@ -86,16 +88,5 @@ class CommentChildController extends BaseController
     public function optionsAction()
     {
         return $this->sendOptionsResponse();
-    }
-
-    /**
-     * @param int $parentId
-     * @return mixed
-     */
-    private function getParentComment(int $parentId)
-    {
-        $repository = $this->getDoctrine()
-            ->getRepository(Comment::class);
-        return ($parentId === 0) ? true : $repository->find($parentId);
     }
 }

@@ -22,9 +22,9 @@ class Comment {
     private $parentId;
 
     /**
-     * @ORM\Column(type="string", length=1000)
+     * @ORM\Column(type="string", length=100)
      * @Assert\NotBlank(message="Comment cannot be empty")
-     * @Assert\Length(max=1000, maxMessage="Comment length can be max 1000 characters")
+     * @Assert\Length(max=100, maxMessage="Comment length can be max 100 characters")
      */
     private $text;
 

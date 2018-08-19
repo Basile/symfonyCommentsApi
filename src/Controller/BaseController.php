@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Entity\Comment;
 use Doctrine\ORM\EntityManagerInterface;
 use FOS\RestBundle\Controller\FOSRestController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -35,5 +36,16 @@ abstract class BaseController extends FOSRestController
     protected function sendResponse($data, $status = JsonResponse::HTTP_OK)
     {
         return $this->view($data, $status, ['Access-Control-Allow-Origin' => '*']);
+    }
+
+    /**
+     * @param int $id
+     * @return object|null
+     */
+    protected function getCommentById(int $id)
+    {
+        return $this->getDoctrine()
+            ->getRepository(Comment::class)
+            ->find($id);
     }
 }

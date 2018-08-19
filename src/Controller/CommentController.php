@@ -1,7 +1,6 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\Comment;
 use FOS\RestBundle\Controller\Annotations;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,14 +20,13 @@ class CommentController extends BaseController implements ClassResourceInterface
 {
     /**
      * @param int $id
-     * @return \FOS\RestBundle\View\View
+     * @return object
      */
     public function getAction(int $id)
     {
-        $comment = $this->getComment($id);
+        $comment = $this->getCommentById($id);
         if (!$comment) {
             return $this->sendResponse([
-                'success' => false,
                 'message' => 'No comment found for id ' . $id,
             ], JsonResponse::HTTP_NOT_FOUND);
         }
@@ -44,10 +42,9 @@ class CommentController extends BaseController implements ClassResourceInterface
      */
     public function putAction(Request $request, int $id, ValidatorInterface $validator)
     {
-        $comment = $this->getComment($id);
+        $comment = $this->getCommentById($id);
         if (!$comment) {
             return $this->sendResponse([
-                'success' => false,
                 'message' => 'No comment found for id ' . $id,
             ], JsonResponse::HTTP_NOT_FOUND);
         }
@@ -55,7 +52,6 @@ class CommentController extends BaseController implements ClassResourceInterface
         $data = json_decode($request->getContent(), true);
         if ($data === null) {
             return $this->sendResponse([
-                'success' => false,
                 'message' => 'Malformed request body',
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -69,7 +65,7 @@ class CommentController extends BaseController implements ClassResourceInterface
                 $errorMessages[$e->getPropertyPath()] = $e->getMessage();
             }
             return $this->sendResponse([
-                'success' => false,
+                'message' => 'There are validation errors',
                 'data' => $errorMessages,
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
@@ -77,7 +73,7 @@ class CommentController extends BaseController implements ClassResourceInterface
         $this->entityManager->persist($comment);
         $this->entityManager->flush();
 
-        return $this->sendResponse(['success' => true]);
+        return $this->sendResponse([]);
     }
 
     /**
@@ -86,29 +82,26 @@ class CommentController extends BaseController implements ClassResourceInterface
      */
     public function deleteAction($id)
     {
-        $comment = $this->getComment($id);
+        $comment = $this->getCommentById($id);
         if (!$comment) {
             return $this->sendResponse([
-                'success' => false,
                 'message' => 'No comment found for id ' . $id,
             ], JsonResponse::HTTP_NOT_FOUND);
         }
 
         $this->entityManager->remove($comment);
+        //TODO delete child comments
         $this->entityManager->flush();
 
-        return $this->sendResponse(['success' => true]);
+        return $this->sendResponse([]);
     }
 
+    /**
+     * @param $id
+     * @return \FOS\RestBundle\View\View
+     */
     public function optionsAction($id)
     {
         return $this->sendOptionsResponse();
-    }
-
-    private function getComment(int $id)
-    {
-        return $this->getDoctrine()
-            ->getRepository(Comment::class)
-            ->find($id);
     }
 }
